@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 select
     date(recorded_at) as reading_date,
     sensor_type,
@@ -8,3 +10,4 @@ select
     count_if(status = 'WARNING') as warning_count
 from {{ ref('stg_bus_sensors') }}
 group by 1, 2
+

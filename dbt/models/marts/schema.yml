@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: dim_bus_status
+    columns:
+      - name: bus_id
+        tests: [not_null]
+      - name: sensor_type
+        tests: [not_null]
+      - name: recorded_at
+        tests: [not_null]
+
+  - name: fct_sensor_readings
+    columns:
+      - name: reading_date
+        tests: [not_null]
+      - name: sensor_type
+        tests: [not_null]
+      - name: total_readings
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: fct_sensor_locations
+    columns:
+      - name: bus_id
+        tests: [not_null]
+      - name: latitude
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -90
+              max_value: 90
+      - name: longitude
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -180
+              max_value: 180

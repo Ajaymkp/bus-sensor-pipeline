@@ -1,0 +1,44 @@
+version: 2
+
+sources:
+  - name: raw
+    database: bus_censor_db
+    schema: raw
+    tables:
+      - name: raw_bus_sensors
+        columns:
+          - name: sensor_id
+            tests: [not_null]
+          - name: recorded_at
+            tests: [not_null]
+
+models:
+  - name: stg_bus_sensors
+    columns:
+      - name: sensor_id
+        tests:
+          - not_null
+          - unique
+      - name: bus_id
+        tests: [not_null]
+      - name: sensor_type
+        tests: [not_null]
+      - name: reading_value
+        tests: [not_null]
+      - name: recorded_at
+        tests: [not_null]
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["ACTIVE", "WARNING", "CRITICAL"]
+      - name: latitude
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -90
+              max_value: 90
+      - name: longitude
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -180
+              max_value: 180

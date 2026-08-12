@@ -1,0 +1,59 @@
+name: dbt CI/CD
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  dbt-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt & dependencies
+        run: |
+          pip install dbt-snowflake
+
+      - name: Create dbt profiles
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << 'PROF'
+          bus_censor_snowflake:
+            target: dev
+            outputs:
+              dev:
+                type: snowflake
+                account: KR23933.europe-west4.gcp
+                user: AjayM
+                private_key_path: /tmp/snowflake_dbt_key.p8
+                private_key_passphrase: null
+                role: ACCOUNTADMIN
+                database: bus_censor_db
+                warehouse: COMPUTE_WH
+                schema: raw
+                threads: 4
+          PROF
+
+      - name: Write private key
+        run: |
+          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > /tmp/snowflake_dbt_key.p8
+          chmod 600 /tmp/snowflake_dbt_key.p8
+
+      - name: dbt deps
+        run: |
+          cd dbt
+          dbt deps
+
+      - name: dbt compile
+        run: |
+          cd dbt
+          dbt compile
